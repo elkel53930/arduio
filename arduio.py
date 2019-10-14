@@ -15,4 +15,16 @@ class Arduio:
             self._ser.reset_output_buffer()
     
     def set_port(self,port,io):
+        pass
 
+    def write_port(self,port,hilo):
+        pass
+
+    def read_port(self,port):
+        pass
+
+    def read_all(self):
+        pass
+
+    def pwm(self,port,duty):
+        pass
