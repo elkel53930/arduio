@@ -3,9 +3,13 @@
 #define MAX_PARAMETER_NUMBER 10 // パラメータ数の最大値(コマンドそのものも含む)
 #define MAX_PARAMETER_LENGTH 10 // パラメータの文字数の最大値
 
-void setup() {
+#define LED 13
+
+void setup()
+{
   // put your setup code here, to run once:
   Serial.begin(9600);
+  pinMode(LED,OUTPUT);
 }
 
 bool isNumber(char c)
@@ -31,7 +35,7 @@ bool isPwmPort(int port)
 
 bool isDigitalPort(int port)
 {
-  return 0 <= port && port <= 19;
+  return 0 <= port && port <= 19 && port != LED;
 }
 
 bool isAnalogPort(int port)
@@ -263,6 +267,7 @@ void loop() {
       }
     }
   }
-
+  digitalWrite(LED,LOW);
   handle_command(command,param_index);
+  digitalWrite(LED,HIGH);
 }

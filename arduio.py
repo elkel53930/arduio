@@ -3,6 +3,7 @@ import os
 import sys
 import struct
 import time
+import argparse
 
 INPUT  = "IN"
 OUTPUT = "OUT"
@@ -28,7 +29,8 @@ class Arduio:
             self._ser.reset_output_buffer()
     
     def set(self,port,io):
-        self._ser.write(("SET," + str(port) + "," + io + "\n").encode())
+        cmd = ("SET," + str(port) + "," + io + "\n").encode()
+        self._ser.write(cmd)
         r = self._ser.readline().decode().rstrip().split(',')
         if r[0] == self.NACK:
             raise Nack
@@ -65,3 +67,46 @@ class Arduio:
         r = self._ser.readline().decode().rstrip().split(',')
         if r[0] == self.NACK:
             raise Nack
+
+if __name__ == "__main__":
+    a = Arduio()
+    time.sleep(2)
+
+    TABLE = {}
+    TABLE["input"] = INPUT
+    TABLE["output"] = OUTPUT
+
+    parser =argparse.ArgumentParser(prog='arduio', description='arduio')
+
+    parser.add_argument('-d', '--device', default="/dev/ttyUSB0", help='device file')
+    parser.add_argument('command', help='set, write, read, read_all, read_analog')
+    parser.add_argument('params', help='set PORT input/output, write PORT 0/1, read PORT, read_analog PORT, pwm PORT 0-255', nargs='*')
+    args = parser.parse_args()
+
+    a = Arduio(port=args.device)
+
+    cmd = args.command
+    params = args.params
+
+    if cmd == "set":
+        port = int(params[0])
+        io = TABLE[params[1]]
+        a.set(port,io)
+    elif cmd == "write":
+        port = int(params[0])
+        a.write(port,params[1])
+    elif cmd == "read":
+        port = int(params[0])
+        print(a.read(port))
+    elif cmd == "read_all":
+        print(a.read_all())
+    elif cmd == "read_analog":
+        port = int(params[0])
+        print(a.read_analog(port))
+    elif cmd == "pwm":
+        port = int(params[0])
+        duty = int(params[1])
+        a.pwm(port,duty)
+    else:
+        print("invalid command")
+        sys.exit(-1)
