@@ -100,6 +100,7 @@ void handle_set(char command[MAX_PARAMETER_NUMBER][MAX_PARAMETER_LENGTH], int pa
   }
   else{
     send_nack();
+    return;
   }
   send_ack(NULL,0);
 }
@@ -109,25 +110,33 @@ void handle_read(char command[MAX_PARAMETER_NUMBER][MAX_PARAMETER_LENGTH], int p
   int port = toInt(command[1]);
   if( param_number != 2 ||
       isNumberString(command[1]) == false ||
-      (isDigitalPort(port) == false && port != -1))
+      isDigitalPort(port) == false)
   {
     send_nack();
     return;
   }
 
-  if(port == -1)
-  {
-    char results[16];
-    for(int i = 0 ; i != 8 ; i++ )
-    {
-      results[i*2] = digitalRead(i)==HIGH?'1':'0';
-      results[i*2+1] = ',';
-    }
-    send_ack(results,15);
-    return;
-  }
   int res = digitalRead(port);
   send_ack(res==HIGH?"1":"0",1);
+}
+
+
+void handle_reada(char command[MAX_PARAMETER_NUMBER][MAX_PARAMETER_LENGTH], int param_number)
+{
+  if( param_number != 1)
+  {
+    send_nack();
+    return;
+  }
+
+  char results[16];
+  for(int i = 0 ; i != 8 ; i++ )
+  {
+    results[i*2] = digitalRead(i)==HIGH?'1':'0';
+    results[i*2+1] = ',';
+  }
+  send_ack(results,15);
+  return;
 }
 
 void handle_aread(char command[MAX_PARAMETER_NUMBER][MAX_PARAMETER_LENGTH], int param_number)
@@ -193,6 +202,10 @@ void handle_command(char command[MAX_PARAMETER_NUMBER][MAX_PARAMETER_LENGTH], in
   {
     handle_read(command,param_number);
   }
+  else if(c.equals("READA"))
+  {
+    handle_reada(command,param_number);
+  }
   else if(c.equals("AREAD"))
   {
     handle_aread(command,param_number);
@@ -204,6 +217,10 @@ void handle_command(char command[MAX_PARAMETER_NUMBER][MAX_PARAMETER_LENGTH], in
   else if(c.equals("PWM"))
   {
     handle_pwm(command,param_number);
+  }
+  else
+  {
+    send_nack();
   }
 }
 
