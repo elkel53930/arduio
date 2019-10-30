@@ -19,7 +19,7 @@ class Nack(Exception):
 
 class Arduio:
     NACK = "NACK"
-    def __init__(self, port="/dev/ttyUSB0",baud=9600,timeout_ms=2000):
+    def __init__(self, port="/dev/ttyUSB0",baud=115200,timeout_ms=2000):
         if timeout_ms < 0:
             self._ser = serial.Serial(port,baud)
         else:
@@ -29,49 +29,53 @@ class Arduio:
             self._ser.reset_output_buffer()
     
     def set(self,port,io):
-        cmd = ("SET," + str(port) + "," + io + "\n").encode()
-        self._ser.write(cmd)
-        r = self._ser.readline().decode().rstrip().split(',')
+        self._send("SET," + str(port) + "," + io + "\n")
+        r = self._rcv()
         if r[0] == self.NACK:
             raise Nack
 
     def write(self,port,hilo):
-        self._ser.write(("WRITE," + str(port) + "," + str(hilo) + "\n").encode())
-        r = self._ser.readline().decode().rstrip().split(',')
+        self._send("WRITE," + str(port) + "," + str(hilo) + "\n")
+        r = self._rcv()
         if r[0] == self.NACK:
             raise Nack
 
     def read(self,port):
-        self._ser.write(("READ," + str(port) + "\n").encode())
-        r = self._ser.readline().decode().rstrip().split(',')
+        self._send("READ," + str(port) + "\n")
+        r = self._rcv()
         if r[0] == self.NACK:
             raise Nack
         return int(r[1])
     
     def read_all(self):
-        self._ser.write(("READA\n").encode())
-        r = self._ser.readline().decode().rstrip().split(',')
+        self._send("READA\n")
+        r = self._rcv()
         if r[0] == self.NACK:
             raise Nack
         return list(map(int,r[1:8]))
     
     def read_analog(self,port):
-        self._ser.write(("AREAD," + str(port) + "\n").encode())
-        r = self._ser.readline().decode().rstrip().split(',')
+        self._send("AREAD," + str(port) + "\n")
+        r = self._rcv()
         if r[0] == self.NACK:
             raise Nack
         return int(r[1])
 
     def pwm(self,port,duty):
-        self._ser.write(("PWM," + str(port) + "," + str(duty) + "\n").encode())
-        r = self._ser.readline().decode().rstrip().split(',')
+        self._send("PWM," + str(port) + "," + str(duty) + "\n")
+        r = self._rcv()
         if r[0] == self.NACK:
             raise Nack
 
-if __name__ == "__main__":
-    a = Arduio()
-    time.sleep(2)
+    def _rcv(self):
+        return self._ser.readline().decode().rstrip().split(',')
 
+    def _send(self,str):
+        return self._ser.write(str.encode())
+
+
+
+if __name__ == "__main__":
     TABLE = {}
     TABLE["input"] = INPUT
     TABLE["output"] = OUTPUT
@@ -84,6 +88,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     a = Arduio(port=args.device)
+    time.sleep(2)
 
     cmd = args.command
     params = args.params
