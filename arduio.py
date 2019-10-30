@@ -19,7 +19,7 @@ class Nack(Exception):
 
 class Arduio:
     NACK = "NACK"
-    def __init__(self, port="/dev/ttyUSB0",baud=115200,timeout_ms=2000):
+    def __init__(self, port="/dev/ttyUSB0",baud=115200,timeout_ms=3000):
         if timeout_ms < 0:
             self._ser = serial.Serial(port,baud)
         else:
