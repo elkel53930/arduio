@@ -25,6 +25,7 @@ class Arduio:
         if self._ser.is_open:
             self._ser.reset_input_buffer()
             self._ser.reset_output_buffer()
+            self._ser.setDTR(False)
     
     def set(self,port,io):
         self._send("SET," + str(port) + "," + io + "\n")
